@@ -28,7 +28,8 @@ My ERD Diagram and API Endpoints.
 https://docs.google.com/document/d/1hAQGyrIICMnB60SbxoreSwm_8IYWW2kXnvZxdU6kOFA/edit?usp=sharing
 
 # Author
-Juliet Duru | Capstone-Project | Backend Developer | Email: julietsamuel78@gmail.com
+Juliet Duru 
+| Capstone-Project | Backend Developer | Email: julietsamuel78@gmail.com
 
 # License
 This project is for educational and demonstration purposes only but if possible will be developed fully in the nearest future
