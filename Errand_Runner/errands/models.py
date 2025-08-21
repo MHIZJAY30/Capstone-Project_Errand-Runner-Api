@@ -19,6 +19,8 @@ class ErrandRequest(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    deadline = models.DateTimeField(null=True, blank=True) 
+    runner_confirmed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.title} - {self.status}"
@@ -28,6 +30,7 @@ class ErrandItem(models.Model):
     errand = models.ForeignKey(ErrandRequest, on_delete=models.CASCADE, related_name='items')
     name = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True) 
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='other')
 
 
