@@ -5,6 +5,7 @@ from .models import ErrandRequest, ErrandItem
 @admin.register(ErrandRequest)
 class ErrandRequestAdmin(admin.ModelAdmin):
     list_display = ('title', 'user', 'created_at')
+    list_filter = ('status', 'created_at')
     search_fields = ('title', 'description')
 
 @admin.register(ErrandItem)
