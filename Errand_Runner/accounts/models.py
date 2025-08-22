@@ -14,9 +14,9 @@ class Profile(models.Model):
     address = models.TextField(blank=True)
     user_type = models.CharField(max_length=20, choices=USER_TYPES, default='requester')
     bio = models.TextField(blank=True, null=True)
-    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)  # Average Runner Rating
-    is_available = models.BooleanField(default=True)  # Useful for Runners
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)  
+    is_available = models.BooleanField(default=True)  
 
     def __str__(self):
-        return f"{self.user.username} ({self.user_type})"
+        return f"{self.user.username} - {self.user_type}"
 
