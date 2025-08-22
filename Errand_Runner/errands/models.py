@@ -11,7 +11,7 @@ class ErrandRequest(models.Model):
         ('cancelled', 'Cancelled'),
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='requested_errands')
-    runner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='accepted_errands')
+    runner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='errands_assigned')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     pickup_location = models.CharField(max_length=255, blank=True)
@@ -36,5 +36,4 @@ class ErrandItem(models.Model):
 
     def __str__(self):
         return f"{self.name} x{self.quantity} {self.errand.title} {self.category}"
-
 
