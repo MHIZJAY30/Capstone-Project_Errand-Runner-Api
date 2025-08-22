@@ -11,4 +11,6 @@ urlpatterns = [
     path('assign-runner/<int:errand_id>/', views.assign_runner, name='assign-runner'),
     path('errands/<int:errand_id>/items/', views.ErrandItemListCreateView.as_view(), name='errand-items'),
     path('items/<int:pk>/', views.ErrandItemDetailView.as_view(), name='item-detail'),
+
+    path('test/', views.test_api, name='test-api'),
 ]
