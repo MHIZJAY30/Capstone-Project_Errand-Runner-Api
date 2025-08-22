@@ -49,17 +49,14 @@ class ErrandItemListView(generics.ListAPIView):
         return ErrandItem.objects.filter(errand_id=errand_id)
     
 class ErrandCategoryView(generics.ListAPIView):
-    """Filter errands by item category"""
     serializer_class = ErrandRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         category = self.kwargs['category']
-        # Get errands that have items with this category
         return ErrandRequest.objects.filter(items__category__iexact=category).distinct()
 
 class ErrandStatusView(generics.ListAPIView):
-    """Filter errands by status"""
     serializer_class = ErrandRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
 
