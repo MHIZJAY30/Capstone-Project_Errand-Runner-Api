@@ -1,14 +1,27 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from .models import ErrandRequest, ErrandItem
+from rest_framework.decorators import api_view, permission_classes, APIException
+from django.db import DatabaseError
+from .models import ErrandRequest, ErrandItem, Review
 from .serializers import ErrandRequestSerializer, ErrandItemSerializer, ErrandRequestCreateSerializer, ReviewSerializer, Review, PermissionDenied
+from rest_framework.exceptions import ValidationError, PermissionDenied
+from django.http import Http404
+from .permissions import IsRequester, IsParticipant, IsCompletedErrand
+
 
 # Create your views here.
 class ErrandRequestListCreateView(generics.ListCreateAPIView):
     queryset = ErrandRequest.objects.all().select_related('user', 'runner')
     permission_classes = [permissions.IsAuthenticated]
+
+    def handle_exception(self, exc):
+        if isinstance(exc, ValidationError):
+            return Response(
+                {"error": "Validation error", "details": exc.detail},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().handle_exception(exc)
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -21,7 +34,36 @@ class ErrandRequestListCreateView(generics.ListCreateAPIView):
 class ErrandRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ErrandRequest.objects.all().select_related('user', 'runner')
     serializer_class = ErrandRequestSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsParticipant]
+
+    def get_object(self):
+        try:
+            errand = super().get_object()
+            if self.request.user not in [errand.requester, errand.runner] and not self.request.user.is_staff:
+                raise PermissionDenied("You don't have permission to access this errand")
+            return errand
+        except Http404:
+            raise Http404("Errand not found")
+        except DatabaseError as e:  
+            raise APIException("Database error occurred while retrieving errand")
+        except Exception as e:
+            raise APIException("Error retrieving errand")
+
+    def update(self, request, *args, **kwargs):
+        try:
+            errand = self.get_object()
+            if request.user != errand.requester:
+                return Response(
+                    {"error": "Only the requester can update this errand"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            return super().update(request, *args, **kwargs)
+        except ValidationError as e:
+            return Response(
+                {"error": "Validation error", "details": e.detail},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
 
 class ErrandItemCreateView(generics.CreateAPIView):
     queryset = ErrandItem.objects.all()
@@ -66,7 +108,7 @@ class ErrandStatusView(generics.ListAPIView):
 
 class ReviewListCreateView(generics.ListCreateAPIView):
     serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsParticipant, IsCompletedErrand]
 
     def get_queryset(self):
         return Review.objects.filter(errand_id=self.kwargs['errand_id'])
@@ -80,6 +122,9 @@ class ReviewListCreateView(generics.ListCreateAPIView):
             reviewee = errand.requester
         else:
             raise PermissionDenied("You can only review participants of this errand")
+        
+        if Review.objects.filter(errand=errand, reviewer=self.request.user).exists():
+            raise ValidationError("You have already reviewed this errand")
         
         serializer.save(
             errand=errand,
@@ -107,7 +152,19 @@ def assign_runner(request, errand_id):
     try:
         errand = ErrandRequest.objects.get(id=errand_id)
         runner_id = request.data.get('runner_id')
+
+        if request.user != errand.requester:
+            return Response(
+                {"error": "Only the requester can assign a runner"},
+                status=status.HTTP_403_FORBIDDEN
+            )
         
+        if errand.status != 'pending':
+            return Response(
+                {"error": f"Cannot assign runner to errand with status: {errand.status}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         if runner_id:
             from django.contrib.auth.models import User
             runner = User.objects.get(id=runner_id)
@@ -123,5 +180,22 @@ def assign_runner(request, errand_id):
         return Response({"error": "Errand not found"}, status=status.HTTP_404_NOT_FOUND)
     except User.DoesNotExist:
         return Response({"error": "Runner not found"}, status=status.HTTP_404_NOT_FOUND)
+    except DatabaseError as e:  
+        return Response(
+            {"error": "Database error occurred", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    except Exception as e:
+        return Response(
+            {"error": "Internal server error"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+        
+    except ErrandRequest.DoesNotExist:
+        raise Http404("Errand not found")
+    except DatabaseError as e:  
+        raise APIException("Database error occurred while creating review")
+    except Exception as e:
+        raise APIException("Error creating review")
 
 
