@@ -3,7 +3,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from .models import ErrandRequest, ErrandItem
-from .serializers import ErrandRequestSerializer, ErrandItemSerializer, ErrandRequestCreateSerializer
+from .serializers import ErrandRequestSerializer, ErrandItemSerializer, ErrandRequestCreateSerializer, ReviewSerializer, Review, PermissionDenied
 
 # Create your views here.
 class ErrandRequestListCreateView(generics.ListCreateAPIView):
@@ -63,6 +63,43 @@ class ErrandStatusView(generics.ListAPIView):
     def get_queryset(self):
         status = self.kwargs['status']
         return ErrandRequest.objects.filter(status__iexact=status)
+
+class ReviewListCreateView(generics.ListCreateAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Review.objects.filter(errand_id=self.kwargs['errand_id'])
+
+    def perform_create(self, serializer):
+        errand = ErrandRequest.objects.get(id=self.kwargs['errand_id'])
+        
+        if self.request.user == errand.requester:
+            reviewee = errand.runner
+        elif self.request.user == errand.runner:
+            reviewee = errand.requester
+        else:
+            raise PermissionDenied("You can only review participants of this errand")
+        
+        serializer.save(
+            errand=errand,
+            reviewer=self.request.user,
+            reviewee=reviewee
+        )
+
+class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Review.objects.all()
+
+class UserReviewsView(generics.ListAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        return Review.objects.filter(reviewee_id=user_id)
+
     
 @api_view(['PUT'])
 @permission_classes([permissions.IsAuthenticated])
@@ -86,4 +123,5 @@ def assign_runner(request, errand_id):
         return Response({"error": "Errand not found"}, status=status.HTTP_404_NOT_FOUND)
     except User.DoesNotExist:
         return Response({"error": "Runner not found"}, status=status.HTTP_404_NOT_FOUND)
+
 

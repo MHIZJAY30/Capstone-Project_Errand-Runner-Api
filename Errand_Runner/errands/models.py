@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 class ErrandRequest(models.Model):
@@ -36,4 +37,27 @@ class ErrandItem(models.Model):
 
     def __str__(self):
         return f"{self.name} x{self.quantity} {self.errand.title} {self.category}"
+
+
+class Review(models.Model):
+    RATING_CHOICES = [
+        (1, '1 Star'),
+        (2, '2 Stars'),
+        (3, '3 Stars'),
+        (4, '4 Stars'),
+        (5, '5 Stars'),
+    ]
+    
+    errand = models.ForeignKey(ErrandRequest, on_delete=models.CASCADE, related_name='reviews')
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='given_reviews')
+    reviewee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_reviews')
+    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['errand', 'reviewer']  
+    
+    def __str__(self):
+        return f"{self.rating} stars for {self.reviewee.username} by {self.reviewer.username}"
 

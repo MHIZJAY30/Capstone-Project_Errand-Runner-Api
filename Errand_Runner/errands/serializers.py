@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ErrandRequest, ErrandItem
+from .models import ErrandRequest, ErrandItem, Review
 
 
 class ErrandItemSerializer(serializers.ModelSerializer):
@@ -9,7 +9,7 @@ class ErrandItemSerializer(serializers.ModelSerializer):
 
 
 class ErrandRequestSerializer(serializers.ModelSerializer):
-    items = ErrandItemSerializer(many=True, read_only=True)  # Nested items
+    items = ErrandItemSerializer(many=True, read_only=True) 
     requester_username = serializers.StringRelatedField(source='requester.username', read_only=True)  # Show username
     runner_username = serializers.StringRelatedField(ource='runner.username', read_only=True, allow_null=True)
 
@@ -23,7 +23,6 @@ class ErrandRequestSerializer(serializers.ModelSerializer):
 
 
 class ErrandRequestCreateSerializer(serializers.ModelSerializer):
-    """For creating errands along with items"""
     items = ErrandItemSerializer(many=True, required=False)
 
     class Meta:
@@ -38,8 +37,27 @@ class ErrandRequestCreateSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         errand = ErrandRequest.objects.create(user=user, **validated_data)
 
-        # Create items if provided
         for item_data in items_data:
             ErrandItem.objects.create(errand=errand, **item_data)
         return errand
 
+
+class ReviewSerializer(serializers.ModelSerializer):
+    reviewer_username = serializers.CharField(source='reviewer.username', read_only=True)
+    reviewee_username = serializers.CharField(source='reviewee.username', read_only=True)
+    
+    class Meta:
+        model = Review
+        fields = ['id', 'errand', 'reviewer', 'reviewer_username', 'reviewee', 'reviewee_username', 
+                 'rating', 'comment', 'created_at']
+        read_only_fields = ['reviewer', 'reviewee']  
+
+class ErrandRequestSerializer(serializers.ModelSerializer):
+    items = ErrandItemSerializer(many=True, read_only=True)
+    reviews = ReviewSerializer(many=True, read_only=True)  
+    requester_username = serializers.CharField(source='requester.username', read_only=True)
+    runner_username = serializers.CharField(source='runner.username', read_only=True, allow_null=True)
+    
+    class Meta:
+        model = ErrandRequest
+        fields = '__all__'
