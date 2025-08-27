@@ -1,17 +1,17 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes, APIException
+from rest_framework.decorators import api_view, permission_classes, APIView
 from django.db import DatabaseError
 from .models import ErrandRequest, ErrandItem, Review
-from .serializers import ErrandRequestSerializer, ErrandItemSerializer, ErrandRequestCreateSerializer, ReviewSerializer, Review, PermissionDenied
-from rest_framework.exceptions import ValidationError, PermissionDenied
+from .serializers import ErrandRequestSerializer, ErrandItemSerializer, ErrandRequestCreateSerializer, ReviewSerializer, Review
+from rest_framework.exceptions import ValidationError, PermissionDenied, APIException
 from django.http import Http404
+from rest_framework.permissions import IsAuthenticated
 from .permissions import IsRequester, IsParticipant, IsCompletedErrand
 
-
 # Create your views here.
-class ErrandRequestListCreateView(generics.ListCreateAPIView):
+class ErrandListCreateView(generics.ListCreateAPIView):
     queryset = ErrandRequest.objects.all().select_related('user', 'runner')
     permission_classes = [permissions.IsAuthenticated]
 
@@ -31,7 +31,7 @@ class ErrandRequestListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-class ErrandRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
+class ErrandDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ErrandRequest.objects.all().select_related('user', 'runner')
     serializer_class = ErrandRequestSerializer
     permission_classes = [permissions.IsAuthenticated, IsParticipant]
@@ -64,6 +64,16 @@ class ErrandRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
+class MyErrandsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        errands = [
+            {"id": 1, "title": "Buy groceries", "status": "pending"},
+            {"id": 2, "title": "Pick up laundry", "status": "completed"},
+        ]
+        return Response(errands)
 
 class ErrandItemCreateView(generics.CreateAPIView):
     queryset = ErrandItem.objects.all()

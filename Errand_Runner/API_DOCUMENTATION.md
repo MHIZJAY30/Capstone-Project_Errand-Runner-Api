@@ -11,49 +11,61 @@ All endpoints require JWT authentication. Include token in headers:
 
 ---
 
-## 📋 User Authentication Endpoints
+# User Authentication Endpoints
 
-### Register User
-**POST** `/auth/register/`
+1. # Register User
+POST /api/auth/register/
 
-**Request:**
-```json
+Description:
+Creates a new user account with a username, email, and password.
+
+# Request:
+Request Body - json
 {
-  "username": "johndoe",
-  "email": "john@example.com",
+  "username": "testuser",
+  "email": "mary@example.com",
   "password": "securepassword123",
   "full_name": "John Doe",
   "phone": "+1234567890",
   "address": "123 Main St, City",
   "user_type": "requester"
 }
+# Response:
+json
+{
+  "user": {
+  "id": 1,
+  "username": "testuser",
+  "email": "mary@example.com"
+  }
+}
+
+
+2. # Login User
+POST /api/auth/login/
+
+Description:
+Logs in a user and returns a JWT token for authentication.
+
+# Request:
+Request Body - json
+{
+  "username": "testuser",
+  "password": "securepassword123",
+}
 Response:
 
 json
 {
-  "message": "User created successfully"
-}
-Login User
-POST /auth/login/
-
-Request:
-
-json
-{
-  "username": "johndoe",
-  "password": "securepassword123"
-}
-Response:
-
-json
-{
-  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6...",
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
   "user_id": 1,
-  "username": "johndoe"
+  "username": "testuser"
 }
-Get/Update Profile
-GET/PUT /auth/profile/
+
+
+3. # Get/Update Profile
+GET/PUT /api/auth/profile/
 
 Response:
 
@@ -267,121 +279,3 @@ text
 
 ### Update your views with proper error handling:
 
-**In `errands/views.py`:**
-```python
-from rest_framework.exceptions import ValidationError, PermissionDenied
-from django.http import Http404
-from rest_framework import status
-from rest_framework.response import Response
-
-class ErrandDetailView(generics.RetrieveUpdateDestroyAPIView):
-    # ... existing code ...
-    
-    def get_object(self):
-        try:
-            errand = super().get_object()
-            # Check permissions
-            if self.request.user not in [errand.requester, errand.runner] and not self.request.user.is_staff:
-                raise PermissionDenied("You don't have permission to access this errand")
-            return errand
-        except Http404:
-            raise Http404("Errand not found")
-        except Exception as e:
-            raise APIException("Error retrieving errand")
-
-    def update(self, request, *args, **kwargs):
-        try:
-            errand = self.get_object()
-            if request.user != errand.requester:
-                return Response(
-                    {"error": "Only the requester can update this errand"},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-            return super().update(request, *args, **kwargs)
-        except ValidationError as e:
-            return Response(
-                {"error": "Validation error", "details": e.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-@api_view(['PUT'])
-@permission_classes([permissions.IsAuthenticated])
-def assign_runner(request, errand_id):
-    try:
-        errand = ErrandRequest.objects.get(id=errand_id)
-        
-        # Check permissions
-        if request.user != errand.requester:
-            return Response(
-                {"error": "Only the requester can assign a runner"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        # Check errand status
-        if errand.status != 'pending':
-            return Response(
-                {"error": f"Cannot assign runner to errand with status: {errand.status}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        runner_id = request.data.get('runner_id')
-        if not runner_id:
-            return Response(
-                {"error": "runner_id is required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-            
-        # ... rest of your logic ...
-        
-    except ErrandRequest.DoesNotExist:
-        return Response(
-            {"error": "Errand not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    except User.DoesNotExist:
-        return Response(
-            {"error": "Runner not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    except Exception as e:
-        return Response(
-            {"error": "Internal server error"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-🔐 4. Custom Permissions
-Create errands/permissions.py:
-
-python
-from rest_framework import permissions
-
-class IsRequester(permissions.BasePermission):
-    """Only allow the requester to modify their errand"""
-    def has_object_permission(self, request, view, obj):
-        return obj.requester == request.user
-
-class IsParticipant(permissions.BasePermission):
-    """Only allow participants (requester or runner) to access"""
-    def has_object_permission(self, request, view, obj):
-        return request.user in [obj.requester, obj.runner]
-
-class IsRunner(permissions.BasePermission):
-    """Only allow the runner to perform action"""
-    def has_object_permission(self, request, view, obj):
-        return obj.runner == request.user
-
-class IsCompletedErrand(permissions.BasePermission):
-    """Only allow actions on completed errands"""
-    def has_object_permission(self, request, view, obj):
-        return obj.status == 'completed'
-Use in your views:
-
-python
-from .permissions import IsRequester, IsParticipant
-
-class ErrandDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsParticipant]
-    # ... rest of code ...
-
-class ReviewListCreateView(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsParticipant, IsCompletedErrand]
-    # ... rest of code ...

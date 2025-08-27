@@ -1,0 +1,4 @@
+body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+header h1 { margin: 0 0 8px; }
+nav a { margin-right: 12px; text-decoration: none; }
+main h2 { margin-top: 0; }

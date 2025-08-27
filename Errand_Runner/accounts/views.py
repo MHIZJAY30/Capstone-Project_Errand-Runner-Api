@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework import generics, viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth.models import User, authenticate 
+from django.contrib.auth import authenticate  
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Profile
 from .serializers import UserSerializer, ProfileSerializer
