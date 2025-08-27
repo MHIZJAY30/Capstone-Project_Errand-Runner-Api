@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Errand Runner API</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1> Errand Runner</h1>
+            <p>Your personal shopping and delivery service</p>
+        </header>
+        
+        <main>
+            <div class="card">
+                <h2>API Status: <span class="status-active">Active</span></h2>
+                <p>The API is running successfully and ready to handle requests!</p>
+            </div>
+
+            <div class="card">
+                <h3> API Endpoints</h3>
+                <ul>
+                    <li><strong>API Documentation:</strong> <a href="/api/">/api/</a></li>
+                    <li><strong>Admin Panel:</strong> <a href="/admin/">/admin/</a></li>
+                    <li><strong>User Authentication:</strong> <a href="/api/auth/">/api/auth/</a></li>
+                    <li><strong>Errands Management:</strong> <a href="/api/errands/">/api/errands/</a></li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3> Technical Details</h3>
+                <ul>
+                    <li><strong>Framework:</strong> Django REST Framework</li>
+                    <li><strong>Authentication:</strong> JWT Tokens</li>
+                    <li><strong>Database:</strong> SQLite/PostgreSQL</li>
+                    <li><strong>Status:</strong> Production Ready</li>
+                </ul>
+            </div>
+        </main>
+
+        <footer>
+            <p>Built with Django | Errand Runner API © 2025</p>
+        </footer>
+    </div>
+</body>
+</html>

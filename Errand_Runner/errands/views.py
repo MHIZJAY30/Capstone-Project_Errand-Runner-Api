@@ -145,6 +145,10 @@ class UserReviewsView(generics.ListAPIView):
         user_id = self.kwargs['user_id']
         return Review.objects.filter(reviewee_id=user_id)
 
+
+def home_view(request):
+    return render(request, 'base.html')
+
     
 @api_view(['PUT'])
 @permission_classes([permissions.IsAuthenticated])
