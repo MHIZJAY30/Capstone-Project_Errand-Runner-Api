@@ -22,13 +22,12 @@ Creates a new user account with a username, email, and password.
 # Request:
 Request Body - json
 {
-  "username": "testuser",
-  "email": "mary@example.com",
-  "password": "securepassword123",
-  "full_name": "John Doe",
-  "phone": "+1234567890",
-  "address": "123 Main St, City",
-  "user_type": "requester"
+    "username": "testuser2",
+    "password": "testpass123",
+    "email": "test2@example.com",
+    "full_name": "Test User2",
+    "phone": "1234567890",
+    "user_type": "requester"
 }
 # Response:
 json

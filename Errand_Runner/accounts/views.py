@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import authenticate  
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Profile
-from .serializers import UserSerializer, ProfileSerializer
+from .serializers import UserSerializer, ProfileSerializer, RegisterSerializer
 from rest_framework.permissions import AllowAny 
 
 # Create your views here.
@@ -18,7 +18,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_user(request):
-    serializer = UserSerializer(data=request.data)
+    serializer = RegisterSerializer(data=request.data) 
     if serializer.is_valid():
         user = User.objects.create_user(
             username=serializer.validated_data['username'],
