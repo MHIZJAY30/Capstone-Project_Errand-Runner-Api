@@ -20,8 +20,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 def register_user(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
-        user = serializer.save()
-        Profile.objects.create(user=user)
+        user = User.objects.create_user(
+            username=serializer.validated_data['username'],
+            password=serializer.validated_data['password'],
+            email=serializer.validated_data.get('email', '')
+        )
+        Profile.objects.get_or_create(user=user)
         return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
