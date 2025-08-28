@@ -6,7 +6,7 @@ from django.db import DatabaseError
 from .models import ErrandRequest, ErrandItem, Review
 from .serializers import ErrandRequestSerializer, ErrandItemSerializer, ErrandRequestCreateSerializer, ReviewSerializer, Review
 from rest_framework.exceptions import ValidationError, PermissionDenied, APIException
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsRequester, IsParticipant, IsCompletedErrand
 
@@ -64,6 +64,11 @@ class ErrandDetailView(generics.RetrieveUpdateDestroyAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
+class ErrandItemDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ErrandItem.objects.all()
+    serializer_class = ErrandItemSerializer
+    permission_classes = {permissions.IsAuthenticated}
 
 class MyErrandsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -159,6 +164,8 @@ class UserReviewsView(generics.ListAPIView):
 def home_view(request):
     return render(request, 'base.html')
 
+def test_api(request):
+    return JsonResponse({"message": "API is working!"})
     
 @api_view(['PUT'])
 @permission_classes([permissions.IsAuthenticated])

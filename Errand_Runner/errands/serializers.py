@@ -10,7 +10,7 @@ class ErrandItemSerializer(serializers.ModelSerializer):
 
 class ErrandRequestSerializer(serializers.ModelSerializer):
     items = ErrandItemSerializer(many=True, read_only=True) 
-    requester_username = serializers.StringRelatedField(source='requester.username', read_only=True)  # Show username
+    requester_username = serializers.StringRelatedField(source='requester.username', read_only=True)  
     runner_username = serializers.StringRelatedField(source='runner.username', read_only=True, allow_null=True)
 
     class Meta:
