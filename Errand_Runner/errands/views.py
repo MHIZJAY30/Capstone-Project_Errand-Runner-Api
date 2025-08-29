@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, APIView
 from django.db import DatabaseError
 from .models import ErrandRequest, ErrandItem, Review
-from .serializers import ErrandRequestSerializer, ErrandItemSerializer, ErrandRequestCreateSerializer, ReviewSerializer, Review
+from .serializers import ErrandRequestSerializer, ErrandRequestCreateSerializer, ErrandItemSerializer, ReviewSerializer, Review
 from rest_framework.exceptions import ValidationError, PermissionDenied, APIException
 from django.http import Http404, JsonResponse
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,  AllowAny
 from .permissions import IsRequester, IsParticipant, IsCompletedErrand
 
 # Create your views here.
@@ -15,18 +15,22 @@ class ErrandListCreateView(generics.ListCreateAPIView):
     queryset = ErrandRequest.objects.all().select_related('user', 'runner')
     permission_classes = [permissions.IsAuthenticated]
 
-    def handle_exception(self, exc):
-        if isinstance(exc, ValidationError):
-            return Response(
-                {"error": "Validation error", "details": exc.detail},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return super().handle_exception(exc)
-
     def get_serializer_class(self):
         if self.request.method == "POST":
             return ErrandRequestCreateSerializer
         return ErrandRequestSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class ErrandRequestListCreateView(generics.ListCreateAPIView):
+    queryset = ErrandRequest.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return ErrandRequestCreateSerializer  
+        return ErrandRequestSerializer  
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -220,3 +224,7 @@ def assign_runner(request, errand_id):
         raise APIException("Error creating review")
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny]) 
+def test_simple(request):
+    return Response({"message": "This endpoint works!"})    

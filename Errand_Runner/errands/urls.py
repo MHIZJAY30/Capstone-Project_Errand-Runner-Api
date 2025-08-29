@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views 
-from .views import ErrandItemCreateView, ErrandDetailView, MyErrandsView, JsonResponse
+from .views import ErrandItemCreateView, ErrandDetailView, MyErrandsView, ErrandListCreateView, ErrandRequestListCreateView
 
 urlpatterns = [
     path('errands/', views.ErrandListCreateView.as_view(), name='errand-list'),
@@ -16,5 +16,7 @@ urlpatterns = [
     path('reviews/<int:pk>/', views.ReviewDetailView.as_view(), name='review-detail'),
     path('users/<int:user_id>/reviews/', views.UserReviewsView.as_view(), name='user-reviews'),
     path('test/', views.test_api, name='test-api'),
+    path('test-simple/', views.test_simple, name='test-simple'),
+    path('errands/<int:pk>/', views.ErrandRequestListCreateView.as_view(), name='errand-requests')
 ]
 

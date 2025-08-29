@@ -11,7 +11,8 @@ class ErrandRequest(models.Model):
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='requested_errands')
+    models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)  
     runner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='errands_assigned')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -27,7 +28,7 @@ class ErrandRequest(models.Model):
         return f"{self.title} - {self.status}"
 
 class ErrandItem(models.Model):
-    CATEGORY_CHOICES = (('grocery', 'Grocery'), ('document', 'Document'), ('package', 'Package'), ('other', 'Other'),)
+    CATEGORY_CHOICES = (('Groceries', 'Groceries'), ('Documents', 'Documents'), ('Packages', 'Packages'), ('Other', 'Other'),)
     errand = models.ForeignKey(ErrandRequest, on_delete=models.CASCADE, related_name='items')
     name = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField(default=1)

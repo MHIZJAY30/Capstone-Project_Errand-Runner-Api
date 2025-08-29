@@ -3,7 +3,7 @@
 Return to [README.md](README.md) for setup instructions and overview.
 
 ## Base URL
-`http://localhost:8000/api/`
+`http://localhost:http://127.0.0.1:80008000/api/`
 
 ## Authentication
 All endpoints require JWT authentication. Include token in headers:
@@ -14,11 +14,10 @@ All endpoints require JWT authentication. Include token in headers:
 # User Authentication Endpoints
 
 1. # Register User
-POST /api/auth/register/
+POST http://127.0.0.1:8000/api/auth/register/
 
 Description:
 Creates a new user account with a username, email, and password.
-
 # Request:
 Request Body - json
 {
@@ -41,11 +40,9 @@ json
 
 
 2. # Login User
-POST /api/auth/login/
-
+POST http://127.0.0.1:8000/api/auth/login/
 Description:
 Logs in a user and returns a JWT token for authentication.
-
 # Request:
 Request Body - json
 {
@@ -58,175 +55,150 @@ json
 {
   "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6...",
   "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
-  "user_id": 1,
-  "username": "testuser"
+  "user_id": 4,
+  "username": "testuser2"
+}
+*Save the access token* from response for next requests.
+
+
+3. # Refresh Access Token
+POST http://127.0.0.1:8000/api/auth/token/refresh/
+Description:
+Used to refresh the access token when it expires, using the refresh token.
+# Request:
+Request Body (JSON):
+{
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+}
+Response (200 OK):
+{
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
 }
 
-
-3. # Get/Update Profile
-GET/PUT /api/auth/profile/
-
-Response:
-
-json
+4. # User Profile (Retrieve & Update)
+GET http://127.0.0.1:8000/api/auth/profile/
+Description:
+Retrieves the currently logged-in user’s profile details.
+Response (200 OK):
 {
   "id": 1,
+  "username": "testuser",
+  "email": "test@example.com",
+  "first_name": "John",
+  "last_name": "Doe"
+}
+# Endpoint (PUT/PATCH):
+PUT http://127.0.0.1:8000/api/auth/profile/
+Description:
+Allows users to update their account details.
+# Request:
+Request Body (JSON):
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "newemail@example.com"
+}
+Response (200 OK):
+{
+  "message": "Profile updated successfully",
   "user": {
     "id": 1,
-    "username": "johndoe",
-    "email": "john@example.com"
-  },
-  "full_name": "John Doe",
-  "phone": "+1234567890",
-  "address": "123 Main St, City",
-  "user_type": "requester",
-  "bio": "",
-  "rating": 0.0,
-  "is_available": true
+    "username": "testuser",
+    "email": "newemail@example.com",
+    "first_name": "John",
+    "last_name": "Doe"
+  }
 }
-📋 Errand Endpoints
-List/Create Errands
-GET/POST /errands/
 
-Create Request:
 
-json
+5. # Create Errand(Core Feature)
+# a. Create a New Errand/Task
+POST http://127.0.0.1:8000/api/errands/
+Description:
+Allows users to update their errand details.
+# Request:
+Request Body (JSON):
+{
+    "title": "Grocery Shopping",
+    "description": "Buy milk, eggs, and bread"
+}
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
 {
   "title": "Grocery Shopping",
-  "description": "Need milk, eggs, and bread",
+  "description": "Buy milk, eggs, and bread",
   "status": "pending"
 }
-Response:
 
-json
-{
-  "id": 1,
-  "title": "Grocery Shopping",
-  "description": "Need milk, eggs, and bread",
-  "status": "pending",
-  "requester": 1,
-  "runner": null,
-  "created_at": "2024-01-15T10:30:00Z",
-  "updated_at": "2024-01-15T10:30:00Z",
-  "items": [],
-  "reviews": []
-}
-Get/Update/Delete Errand
-GET/PUT/DELETE /errands/{id}/
+# b. List All Errands/Tasks
+GET http://127.0.0.1:8000/api/errands/
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+[
+  {
+    "id": 1,
+    "items": [],
+    "reviews": [],
+    "runner_username": null,
+    "title": "Grocery Shopping",
+    "description": "Buy milk, eggs, and bread",
+    "pickup_location": "",
+    "dropoff_location": "",
+    "status": "pending",
+    "created_at": "2025-08-29T21:27:54.729504Z",
+    "updated_at": "2025-08-29T21:27:54.729573Z",
+    "deadline": null,
+    "runner_confirmed": false,
+    "user": 4,
+    "runner": null
+  }
+]
 
-Filter Errands by Category
-GET /errands/category/{category}/
-Example: /errands/category/food/
+# c. Update/Delete an Errand
+PUT    http://127.0.0.1:8000/api/errands/
+DELETE http://127.0.0.1:8000/api/errands/{id}/
 
-Filter Errands by Status
-GET /errands/status/{status}/
-Example: /errands/status/completed/
 
-Get User's Errands
-GET /my-errands/
+6. #  Get My Errands
+GET http://127.0.0.1:8000/api/my-errands/
+Description:
+Allows users to see their their errands and the status
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+[
+  {
+    "id": 1,
+    "title": "Buy groceries",
+    "status": "pending"
+  },
+  {
+    "id": 2,
+    "title": "Pick up laundry",
+    "status": "completed"
+  }
+]
 
-Get Assigned Errands
-GET /assigned-to-me/
+7. #  Get Assigned Errands(Runner)
+GET http://127.0.0.1:8000/api/assigned-to-me/
+Description:
+Allows runners to see their their errands and the status
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+[]
+it’s returning an empty list because there are currently no errands in the database that are assigned to the authenticated user at the moment
 
-Assign Runner
-PUT /assign-runner/{errand_id}/
 
-Request:
 
-json
-{
-  "runner_id": 2
-}
-Response:
 
-json
-{
-  "message": "Runner username assigned to errand"
-}
-📋 Errand Item Endpoints
-List/Create Items for Errand
-GET/POST /errands/{errand_id}/items/
 
-Create Request:
-
-json
-{
-  "name": "Milk",
-  "quantity": 2,
-  "category": "dairy",
-  "notes": "Organic whole milk"
-}
-Get/Update/Delete Item
-GET/PUT/DELETE /items/{id}/
-
-📋 Review Endpoints
-List/Create Reviews for Errand
-GET/POST /errands/{errand_id}/reviews/
-
-Create Request:
-
-json
-{
-  "rating": 5,
-  "comment": "Excellent service! Delivered quickly."
-}
-Get User Reviews
-GET /users/{user_id}/reviews/
-
-🔐 Permission Requirements
-Only authenticated users can access all endpoints
-
-Only requester can update/delete their errands
-
-Only participants can review completed errands
-
-Only requester can assign runners to their errands
-
-🚦 Status Codes
-200: Success
-
-201: Created
-
-400: Bad Request
-
-401: Unauthorized
-
-403: Forbidden
-
-404: Not Found
-
-409: Conflict
-
-500: Server Error
-
-text
-
----
-
-## 🧪 2. Testing Guide with Thunder Client
-
-### Step 1: Install Thunder Client
-- VS Code → Extensions → Search "Thunder Client" → Install
-
-### Step 2: Create Collection
-1. Open Thunder Client
-2. Click "Collections" → "New Collection"
-3. Name it "Errand Runner API"
-
-### Step 3: Test Authentication
-**Request 1: Register**
-POST http://localhost:8000/api/auth/register/
-Body (JSON):
-{
-"username": "testuser",
-"email": "test@example.com",
-"password": "testpass123",
-"full_name": "Test User",
-"phone": "1234567890",
-"user_type": "requester"
-}
-
-text
 
 **Request 2: Login**
 POST http://localhost:8000/api/auth/login/
