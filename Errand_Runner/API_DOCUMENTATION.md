@@ -284,7 +284,7 @@ Response (200 Created):
         "price": null,
         "category": "groceries"
       },
-      {.............
+      .............
        
     ]
 
@@ -342,6 +342,8 @@ Response (200 Created):
 
 12. # Review System
 POST http://127.0.0.1:8000/api/errands/{errand_id}/reviews/
+Description:
+Create review for completed errand
 # Request:
 Request Body (JSON):
 {
@@ -366,6 +368,8 @@ Response (200 Created):
 
 # 
 GET http://127.0.0.1:8000/api/errands/{errand_id}/reviews/
+Description:
+Get all reviews for an errand
 # token
 Auth (bearer token)
 "access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
