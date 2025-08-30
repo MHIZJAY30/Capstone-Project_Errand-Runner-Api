@@ -197,6 +197,31 @@ it’s returning an empty list because there are currently no errands in the dat
 
 
 
+8. # Create an Errand Item
+POST http://127.0.0.1:8000/api/errands/{errand_id}/items/ (erand_id 1)
+
+summary='Example of creating an errand item under a specific errand'
+Description:
+Creates a new item under a specific errand. 'This request creates a new item ("Milk") under errand ID 1.'
+# Request:
+Request Body (JSON):
+{
+    "name": "Milk", 
+    "quantity": 2,
+    "category": "groceries",  
+    "notes": "Whole milk"
+}
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+{
+  "id": 2,
+  "name": "Milk",
+  "quantity": 2,
+  "price": null,
+  "category": "groceries"
+}
 
 
 

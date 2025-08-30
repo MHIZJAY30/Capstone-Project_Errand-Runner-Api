@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, APIView
@@ -8,7 +8,8 @@ from .serializers import ErrandRequestSerializer, ErrandRequestCreateSerializer,
 from rest_framework.exceptions import ValidationError, PermissionDenied, APIException
 from django.http import Http404, JsonResponse
 from rest_framework.permissions import IsAuthenticated,  AllowAny
-from .permissions import IsRequester, IsParticipant, IsCompletedErrand
+from .permissions import IsParticipant, IsCompletedErrand
+from rest_framework import viewsets
 
 # Create your views here.
 class ErrandListCreateView(generics.ListCreateAPIView):
@@ -43,7 +44,7 @@ class ErrandDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_object(self):
         try:
             errand = super().get_object()
-            if self.request.user not in [errand.requester, errand.runner] and not self.request.user.is_staff:
+            if self.request.user not in [errand.user, errand.runner] and not self.request.user.is_staff:
                 raise PermissionDenied("You don't have permission to access this errand")
             return errand
         except Http404:
@@ -56,7 +57,7 @@ class ErrandDetailView(generics.RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         try:
             errand = self.get_object()
-            if request.user != errand.requester:
+            if request.user != errand.user:
                 return Response(
                     {"error": "Only the requester can update this errand"},
                     status=status.HTTP_403_FORBIDDEN
@@ -90,7 +91,11 @@ class ErrandItemCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        errand_id = self.request.data.get("errand")
+        errand_id = self.kwargs.get('errand_id')
+        errand = ErrandRequest.objects.get(id=errand_id)
+        if self.request.user != errand.user:
+            raise PermissionDenied("You can only add items to your own errands")
+        
         serializer.save(errand_id=errand_id)
 
 
@@ -108,6 +113,20 @@ class ErrandItemListView(generics.ListAPIView):
     def get_queryset(self):
         errand_id = self.kwargs['errand_id']
         return ErrandItem.objects.filter(errand_id=errand_id)
+
+
+class ErrandItemViewSet(viewsets.ModelViewSet):
+    serializer_class = ErrandItemSerializer
+
+    def get_queryset(self):
+        errand_id = self.kwargs["errand_pk"]
+        return ErrandItem.objects.filter(errand_id=errand_id)
+
+    def perform_create(self, serializer):
+        errand_id = self.kwargs["errand_pk"]
+        errand = get_object_or_404(ErrandRequest, pk=errand_id)
+        serializer.save(errand=errand)
+
     
 class ErrandCategoryView(generics.ListAPIView):
     serializer_class = ErrandRequestSerializer
@@ -135,10 +154,10 @@ class ReviewListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         errand = ErrandRequest.objects.get(id=self.kwargs['errand_id'])
         
-        if self.request.user == errand.requester:
+        if self.request.user == errand.user:
             reviewee = errand.runner
         elif self.request.user == errand.runner:
-            reviewee = errand.requester
+            reviewee = errand.user
         else:
             raise PermissionDenied("You can only review participants of this errand")
         
@@ -178,7 +197,7 @@ def assign_runner(request, errand_id):
         errand = ErrandRequest.objects.get(id=errand_id)
         runner_id = request.data.get('runner_id')
 
-        if request.user != errand.requester:
+        if request.user != errand.user:
             return Response(
                 {"error": "Only the requester can assign a runner"},
                 status=status.HTTP_403_FORBIDDEN
@@ -228,3 +247,8 @@ def assign_runner(request, errand_id):
 @permission_classes([AllowAny]) 
 def test_simple(request):
     return Response({"message": "This endpoint works!"})    
+
+@api_view(['GET'])
+def category_choices(user):
+    choices = dict(ErrandItem.CATEGORY_CHOICES)
+    return Response(choices)    
