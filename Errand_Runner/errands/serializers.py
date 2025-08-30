@@ -33,7 +33,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'errand', 'reviewer', 'reviewer_username', 'reviewee', 'reviewee_username', 
                  'rating', 'comment', 'created_at']
-        read_only_fields = ['reviewer', 'reviewee']  
+        read_only_fields = ['errand', 'reviewer', 'reviewee']  
 
 class ErrandRequestSerializer(serializers.ModelSerializer):
     items = ErrandItemSerializer(many=True, read_only=True)

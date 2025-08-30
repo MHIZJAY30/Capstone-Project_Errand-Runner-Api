@@ -18,6 +18,7 @@ POST http://127.0.0.1:8000/api/auth/register/
 
 Description:
 Creates a new user account with a username, email, and password.
+A new user can sign up
 # Request:
 Request Body - json
 {
@@ -42,6 +43,7 @@ json
 2. # Login User
 POST http://127.0.0.1:8000/api/auth/login/
 Description:
+A user logs in and gets a token to use the app.
 Logs in a user and returns a JWT token for authentication.
 # Request:
 Request Body - json
@@ -78,7 +80,8 @@ Response (200 OK):
 4. # User Profile (Retrieve & Update)
 GET http://127.0.0.1:8000/api/auth/profile/
 Description:
-Retrieves the currently logged-in user’s profile details.
+Retrieves the currently logged-in user’s profile details. 
+Show the current user's profile.
 Response (200 OK):
 {
   "id": 1,
@@ -91,6 +94,7 @@ Response (200 OK):
 PUT http://127.0.0.1:8000/api/auth/profile/
 Description:
 Allows users to update their account details.
+Update the profile (like address, phone number, user type).
 # Request:
 Request Body (JSON):
 {
@@ -115,6 +119,7 @@ Response (200 OK):
 # a. Create a New Errand/Task
 POST http://127.0.0.1:8000/api/errands/
 Description:
+Create a new errand request
 Allows users to update their errand details.
 # Request:
 Request Body (JSON):
@@ -134,6 +139,8 @@ Response (200 Created):
 
 # b. List All Errands/Tasks
 GET http://127.0.0.1:8000/api/errands/
+Description:
+See a list of all errands in the system.
 # token
 Auth (bearer token)
 "access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
@@ -160,6 +167,11 @@ Response (200 Created):
 
 # c. Update/Delete an Errand
 PUT    http://127.0.0.1:8000/api/errands/
+Description:
+Update an errand (maybe the title or status).
+# delete
+Description:
+Remove an errand
 DELETE http://127.0.0.1:8000/api/errands/{id}/
 
 
@@ -167,6 +179,7 @@ DELETE http://127.0.0.1:8000/api/errands/{id}/
 GET http://127.0.0.1:8000/api/my-errands/
 Description:
 Allows users to see their their errands and the status
+The user sees only errands they created.
 # token
 Auth (bearer token)
 "access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
@@ -187,7 +200,7 @@ Response (200 Created):
 7. #  Get Assigned Errands(Runner)
 GET http://127.0.0.1:8000/api/assigned-to-me/
 Description:
-Allows runners to see their their errands and the status
+The runners sees errands that were assigned to them.
 # token
 Auth (bearer token)
 "access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
@@ -202,6 +215,7 @@ POST http://127.0.0.1:8000/api/errands/{errand_id}/items/ (erand_id 1)
 
 summary='Example of creating an errand item under a specific errand'
 Description:
+Add new items to the shopping list.
 Creates a new item under a specific errand. 'This request creates a new item ("Milk") under errand ID 1.'
 # Request:
 Request Body (JSON):
@@ -224,54 +238,158 @@ Response (200 Created):
 }
 
 
-
-**Request 2: Login**
-POST http://localhost:8000/api/auth/login/
-Body (JSON):
+9. # Assign Runner to Errand
+PUT http://127.0.0.1:8000/api/assign-runner/1/
+Description:
+The user assigns a runner to an errand
+# Request:
+Request Body (JSON):
 {
-"username": "testuser",
-"password": "testpass123"
+    "runner_id": 2
+}
+Note: You need a runner user ID. Create a runner user first:
+{
+    "username": "runner1",
+    "password": "runnerpass123",
+    "email": "runner@example.com",
+    "user_type": "runner"
+}
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+{
+  "message": "Runner lenovo assigned to errand"
 }
 
-text
 
-**Save the access token** from response for next requests.
+10. # Filter Errands by Category
+GET http://127.0.0.1:8000/api/errands/category/{category}/
+Test with:
+GET /api/errands/category/food/
+GET /api/errands/category/groceries/
+GET /api/errands/category/medicine/
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+[
+  
+    "id": 1,
+    "items": [
+      {
+        "id": 1,
+        "name": "Milk",
+        "quantity": 2,
+        "price": null,
+        "category": "groceries"
+      },
+      {.............
+       
+    ]
 
-### Step 4: Test Errand Operations
-**Request 3: Create Errand** (add Authorization header with token)
-POST http://localhost:8000/api/errands/
-Headers: Authorization: Bearer <your_token>
-Body:
+]
+
+
+11. # Filter Errands by Status
+GET http://127.0.0.1:8000/api/errands/status/{status}/
+Test with:
+GET /api/errands/status/pending/
+GET /api/errands/status/in_progress/
+GET /api/errands/status/completed/
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+[
+  {
+    "id": 1,
+    "items": 
+      {
+        "id": 1,
+        "name": "Milk",
+        "quantity": 2,
+        "price": null,
+        "category": "groceries"
+      },
+    ......................
+  }
+]
+
+
+12. # Get/Update/Delete Specific Items
+GET http://127.0.0.1:8000/api/items/{id}/
+PUT http://127.0.0.1:8000/api/items/{id}/
+DELETE http://127.0.0.1:8000/api/items/{id}/
+# Body for PUT:
 {
-"title": "Test Errand",
-"description": "This is a test errand"
+    "name": "Updated Item Name", (milk)
+    "quantity": 5,
+    "category": "updated_category" (groceries)
+}
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+{
+  "id": 1,
+  "name": "milk",
+  "quantity": 5,
+  "price": null,
+  "category": "groceries"
 }
 
-text
 
-**Request 4: Get All Errands**
+12. # Review System
+POST http://127.0.0.1:8000/api/errands/{errand_id}/reviews/
+# Request:
+Request Body (JSON):
+{
+    "rating": 5,
+    "comment": "Excellent service! Very fast delivery."
+}
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+{
+  "id": 1,
+  "errand": 1,
+  "reviewer": 4,
+  "reviewer_username": "testuser2",
+  "reviewee": 1,
+  "reviewee_username": "lenovo",
+  "rating": 5,
+  "comment": "Excellent service! Very fast delivery.",
+  "created_at": "2025-08-30T13:52:14.991986Z"
+}
+
+# 
+GET http://127.0.0.1:8000/api/errands/{errand_id}/reviews/
+# token
+Auth (bearer token)
+"access": (eyJhbGciOiJIUzI1NiIsInR5cCI6...)
+Response (200 Created):
+[
+  {
+    "id": 1,
+    "errand": 1,
+    "reviewer": 4,
+    "reviewer_username": "testuser2",
+    "reviewee": 1,
+    "reviewee_username": "lenovo",
+    "rating": 5,
+    "comment": "Excellent service! Very fast delivery.",
+    "created_at": "2025-08-30T13:52:14.991986Z"
+  }
+]
+
+
+13. # Test Error Scenarios
+Try accessing without token**
 GET http://localhost:8000/api/errands/
-Headers: Authorization: Bearer <your_token>
+Response:
+Should return 401 Unauthorized
 
-text
 
-### Step 5: Test Error Scenarios
-**Request 5: Try accessing without token**
-GET http://localhost:8000/api/errands/
-// Should return 401 Unauthorized
-
-text
-
-**Request 6: Try invalid errand ID**
-GET http://localhost:8000/api/errands/9999/
-Headers: Authorization: Bearer <your_token>
-// Should return 404 Not Found
-
-text
-
----
-
-## 🛡️ 3. Enhanced Error Handling
-
-### Update your views with proper error handling:
 
