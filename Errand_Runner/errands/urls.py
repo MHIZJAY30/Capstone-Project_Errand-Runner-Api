@@ -25,3 +25,4 @@ urlpatterns = [
     path('test/', views.test_api, name='test-api'),
     path('test-simple/', views.test_simple, name='test-simple'),
 ]
+
