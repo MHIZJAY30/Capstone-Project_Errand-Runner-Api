@@ -26,9 +26,9 @@ SECRET_KEY = 'django-insecure-u^2ry4&k!p_zffmena@sf!g)6&24_t0^r+r##%)5k64azxj90(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-if 'RENDER' in os.environ:
-    ALLOWED_HOSTS = [os.environ.get('RENDER_EXTERNAL_HOSTNAME'),'127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ["julietduru78.pythonanywhere.com", "127.0.0.1", "localhost"]
 
+CSRF_TRUSTED_ORIGINS = ["https://julietduru78.pythonanywhere.com"]
 
 # Application definition
 
@@ -92,14 +92,11 @@ WSGI_APPLICATION = 'Errand_Runner.wsgi.application'
 import dj_database_url
 
 DATABASES = {
-    'default': 
-dj_database_url.config(
-default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        ssl_require=True
-)
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
